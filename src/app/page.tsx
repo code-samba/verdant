@@ -11,20 +11,17 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
-type GroupKey = "A" | "B" | "C" | "D"
-
 interface RawRow {
   date: string
-  group: GroupKey
+  group: string
+  seed: string
   growth: number
+  diameter: number
 }
 
 interface ChartDataPoint {
   date: string
-  A?: number
-  B?: number
-  C?: number
-  D?: number
+  [key: string]: string | number // example: "1A - Jatoba": number
 }
 
 export default function GrowthDashboard() {
@@ -43,22 +40,25 @@ export default function GrowthDashboard() {
           .split("\n")
           .slice(1)
           .map(row => {
-            const [dateRaw, groupRaw, growthRaw] = row.split(",")
+            const [dateRaw, groupRaw, seedRaw, growthRaw, diameterRaw] = row.split(",")
             const date = dateRaw.trim().replace(/^"|"$/g, "")
-            const group = groupRaw.trim().replace(/^"|"$/g, "") as GroupKey
+            const group = groupRaw.trim().replace(/^"|"$/g, "")
+            const seed = seedRaw.trim().replace(/^"|"$/g, "")
             const growth = Number(growthRaw?.trim().replace(/"/g, "")) || 0
-            return { date, group, growth }
+            const diameter = Number(diameterRaw?.trim().replace(/"/g, "")) || 0
+            return { date, group, seed, growth, diameter }
           })
-          .filter(({ date, group, growth }) => date && group && !isNaN(growth))
 
         const grouped: Record<string, ChartDataPoint> = {}
 
-        for (const { date, group, growth } of rows) {
+        for (const { date, group, seed, growth } of rows) {
+          const key = `${group} - ${seed}`
           if (!grouped[date]) grouped[date] = { date }
-          grouped[date][group] = growth
+          grouped[date][key] = growth
         }
 
-        setData(Object.values(grouped))
+        const chartData = Object.values(grouped)
+        setData(chartData)
       } catch (error) {
         console.error("Erro ao carregar a planilha:", error)
       }
@@ -67,13 +67,17 @@ export default function GrowthDashboard() {
     fetchSheet()
   }, [])
 
+  const groupKeys = data.length > 0
+    ? Object.keys(data[0]).filter(key => key !== "date")
+    : []
+
   return (
     <main className="flex p-4 md:p-6 flex-col h-[85vh]">
       <div className="flex flex-col gap-4 h-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold">Growth Trajectory</h2>
-            <p className="text-muted-foreground">Visualizing exponential growth over time</p>
+            <h2 className="text-2xl font-bold">Growth by Group and Seed</h2>
+            <p className="text-muted-foreground">Each line shows a group-seed combination</p>
           </div>
         </div>
         <Card className="flex-1 p-4 md:p-6 flex flex-col">
@@ -92,52 +96,30 @@ export default function GrowthDashboard() {
                   tickFormatter={(value) => `${value.toLocaleString()}`}
                 />
                 <Tooltip />
-                {(["A", "B", "C", "D"] as GroupKey[]).map(group => (
+                {groupKeys.map(key => (
                   <Line
-                    key={group}
+                    key={key}
                     type="monotone"
-                    dataKey={group}
+                    dataKey={key}
                     stroke="#000000"
-                    strokeWidth={3}
+                    strokeWidth={2}
                     dot={{
-                      r: 4,
+                      r: 3,
                       fill: "hsl(var(--primary))",
                       stroke: "hsl(var(--primary))",
                     }}
                     activeDot={{
-                      r: 6,
+                      r: 5,
                       fill: "hsl(var(--primary))",
                       stroke: "hsl(var(--background))",
                       strokeWidth: 2,
                     }}
-                    animationDuration={1500}
+                    animationDuration={1000}
                   />
                 ))}
               </LineChart>
             </ResponsiveContainer>
           </div>
-          { 
-            /*
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
-              <div>
-                <p className="text-sm text-muted-foreground">Current Value</p>
-                <p className="text-2xl font-bold">{totalGrowth.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Growth Rate</p>
-                <p className="text-2xl font-bold text-emerald-500">+21%</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">YoY Change</p>
-                <p className="text-2xl font-bold">+2,200%</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Projection</p>
-                <p className="text-2xl font-bold">35,000</p>
-              </div>
-            </div>
-            */
-          }
         </Card>
       </div>
     </main>
