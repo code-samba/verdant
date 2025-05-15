@@ -34,7 +34,7 @@ export default function GrowthDashboard() {
     async function fetchSheet() {
       try {
         const res = await fetch(
-          "https://docs.google.com/spreadsheets/d/1_3M3v2GxE9kNtF5lpXUqubaDpGVlJ0Yk_14MpFJUD-M/gviz/tq?tqx=out:csv"
+          "https://docs.google.com/spreadsheets/d/1cTUvxmVhGdnonx9MHnrjekhSkeu2coLyentpYTOWXGQ/gviz/tq?tqx=out:csv"
         )
         const csv = await res.text()
 
