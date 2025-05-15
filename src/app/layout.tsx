@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br" className={inter.className}>
-      <body className="bg-gradient-to-br from-background to-muted">
+      <body>
         <Header />
         {children}
         <Footer />

@@ -1,17 +1,17 @@
 "use client"
 import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts"
+import { GrowthChart } from "./components/growth-chart"
+import { DiameterChart } from "./components/diameter-chart"
 
-interface RawRow {
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select" // caminho típico do shadcn select, ajuste se necessário
+
+export interface RawRow {
   date: string
   group: string
   seed: string
@@ -19,13 +19,15 @@ interface RawRow {
   diameter: number
 }
 
-interface ChartDataPoint {
+export interface ChartDataPoint {
   date: string
-  [key: string]: string | number // example: "1A - Jatoba": number
+  [key: string]: string | number
 }
 
 export default function GrowthDashboard() {
-  const [data, setData] = useState<ChartDataPoint[]>([])
+  const [growthData, setGrowthData] = useState<ChartDataPoint[]>([])
+  const [diameterData, setDiameterData] = useState<ChartDataPoint[]>([])
+  const [selectedChart, setSelectedChart] = useState<"growth" | "diameter">("growth")
 
   useEffect(() => {
     async function fetchSheet() {
@@ -49,79 +51,53 @@ export default function GrowthDashboard() {
             return { date, group, seed, growth, diameter }
           })
 
-        const grouped: Record<string, ChartDataPoint> = {}
+        const growthGrouped: Record<string, ChartDataPoint> = {}
+        const diameterGrouped: Record<string, ChartDataPoint> = {}
 
-        for (const { date, group, seed, growth } of rows) {
+        for (const { date, group, seed, growth, diameter } of rows) {
           const key = `${group} - ${seed}`
-          if (!grouped[date]) grouped[date] = { date }
-          grouped[date][key] = growth
+          if (!growthGrouped[date]) growthGrouped[date] = { date }
+          if (!diameterGrouped[date]) diameterGrouped[date] = { date }
+
+          growthGrouped[date][key] = growth
+          diameterGrouped[date][key] = diameter
         }
 
-        const chartData = Object.values(grouped)
-        setData(chartData)
+        setGrowthData(Object.values(growthGrouped))
+        setDiameterData(Object.values(diameterGrouped))
       } catch (error) {
-        console.error("Erro ao carregar a planilha:", error)
+        console.error("Erro ao carregar a planilha: ", error)
       }
     }
 
     fetchSheet()
   }, [])
 
-  const groupKeys = data.length > 0
-    ? Object.keys(data[0]).filter(key => key !== "date")
-    : []
-
   return (
-    <main className="flex p-4 md:p-6 flex-col h-[85vh]">
-      <div className="flex flex-col gap-4 h-full">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold">Growth by Group and Seed</h2>
-            <p className="text-muted-foreground">Each line shows a group-seed combination</p>
-          </div>
+    <main className="flex p-4 md:p-6 flex-col gap-6 h-[85vh]">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">{selectedChart === "growth" ? "Growth by Group and Seed" : "Diameter by Group and Seed"}</h2>
+          <p className="text-muted-foreground">{selectedChart === "growth" ? "Each line shows a group-seed combination" : "Visualizing trunk diameter over time"}</p>
         </div>
-        <Card className="flex-1 p-4 md:p-6 flex flex-col">
-          <div className="flex-1 min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.1} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fill: "hsl(var(--foreground))" }}
-                  axisLine={{ stroke: "hsl(var(--border))" }}
-                />
-                <YAxis
-                  tick={{ fill: "hsl(var(--foreground))" }}
-                  axisLine={{ stroke: "hsl(var(--border))" }}
-                  tickFormatter={(value) => `${value.toLocaleString()}`}
-                />
-                <Tooltip />
-                {groupKeys.map(key => (
-                  <Line
-                    key={key}
-                    type="monotone"
-                    dataKey={key}
-                    stroke="#000000"
-                    strokeWidth={2}
-                    dot={{
-                      r: 3,
-                      fill: "hsl(var(--primary))",
-                      stroke: "hsl(var(--primary))",
-                    }}
-                    activeDot={{
-                      r: 5,
-                      fill: "hsl(var(--primary))",
-                      stroke: "hsl(var(--background))",
-                      strokeWidth: 2,
-                    }}
-                    animationDuration={1000}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        <Select
+          value={selectedChart}
+          onValueChange={(value) => setSelectedChart(value as "growth" | "diameter")}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Selecione o gráfico" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="growth">Growth</SelectItem>
+            <SelectItem value="diameter">Diameter</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+      {selectedChart === "growth" ? (
+        <GrowthChart data={growthData} />
+      ) : (
+        <DiameterChart data={diameterData} />
+      )}
     </main>
   )
 }
