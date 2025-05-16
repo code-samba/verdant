@@ -16,7 +16,6 @@ export default function Header() {
           <h1 className="text-xl font-bold">Samba Verdant</h1>
         </div>
         <nav className="hidden md:flex items-center gap-6">
-          
           <Button variant="ghost" className="text-sm" disabled>Dashboard</Button>
           <Button variant="ghost" className="text-sm" disabled>Analytics</Button>
           <Button variant="ghost" className="text-sm" disabled>Reports</Button>
@@ -35,10 +34,10 @@ export default function Header() {
         mobileMenuOpen && (
           <div className="md:hidden absolute top-16 right-4 z-50 bg-background border rounded-lg shadow-lg p-4 w-48">
             <div className="flex flex-col gap-2">
-              <Button variant="ghost" className="justify-start">Dashboard</Button>
-              <Button variant="ghost" className="justify-start">Analytics</Button>
-              <Button variant="ghost" className="justify-start">Reports</Button>
-              <Button variant="outline" className="mt-2">Share</Button>
+              <Button variant="ghost" className="justify-start" disabled>Dashboard</Button>
+              <Button variant="ghost" className="justify-start" disabled>Analytics</Button>
+              <Button variant="ghost" className="justify-start" disabled>Reports</Button>
+              <Button variant="outline" className="mt-2" disabled>Share</Button>
             </div>
           </div>
         )
