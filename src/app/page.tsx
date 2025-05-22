@@ -19,8 +19,10 @@ type ChartType = "growth" | "diameter"
 type Species = "jatoba" | "guapuruvu"
 
 const CSV_URLS: Record<Species, string> = {
-  jatoba: "https://docs.google.com/spreadsheets/d/1cTUvxmVhGdnonx9MHnrjekhSkeu2coLyentpYTOWXGQ/gviz/tq?tqx=out:csv&gid=0",
-  guapuruvu: "https://docs.google.com/spreadsheets/d/1cTUvxmVhGdnonx9MHnrjekhSkeu2coLyentpYTOWXGQ/gviz/tq?tqx=out:csv&gid=409529600",
+  jatoba:
+    "https://docs.google.com/spreadsheets/d/1cTUvxmVhGdnonx9MHnrjekhSkeu2coLyentpYTOWXGQ/gviz/tq?tqx=out:csv&gid=0",
+  guapuruvu:
+    "https://docs.google.com/spreadsheets/d/1cTUvxmVhGdnonx9MHnrjekhSkeu2coLyentpYTOWXGQ/gviz/tq?tqx=out:csv&gid=409529600",
 }
 
 export default function GrowthDashboard() {
@@ -51,43 +53,43 @@ export default function GrowthDashboard() {
         const parsedGrowth: ChartDataPoint[] = []
         const parsedDiameter: ChartDataPoint[] = []
 
-        // Função para converter string dd/mm/aaaa em Date
-        const parseDate = (str: string) => {
-          const [day, month, year] = str.split("/").map(Number)
-          return new Date(year, month - 1, day)
-        }
-
-        let lastIncludedDate: Date | null = null
-
         for (let i = 1; i < lines.length; i++) {
           const row = lines[i].split(",").map(cell => cell.trim().replace(/^"|"$/g, ""))
           const dateStr = row[dateIndex]
-          const currentDate = parseDate(dateStr)
 
-          if (
-            !lastIncludedDate ||
-            currentDate.getTime() - lastIncludedDate.getTime() >= 5 * 24 * 60 * 60 * 1000
-          ) {
-            lastIncludedDate = currentDate
+          const growthRow: ChartDataPoint = { date: dateStr }
+          const diameterRow: ChartDataPoint = { date: dateStr }
 
-            const growthRow: ChartDataPoint = { date: dateStr }
-            const diameterRow: ChartDataPoint = { date: dateStr }
-
-            for (const { group, index } of heightColumns) {
-              growthRow[group] = parseFloat(row[index]) || 0
-            }
-
-            for (const { group, index } of diameterColumns) {
-              diameterRow[group] = parseFloat(row[index]) || 0
-            }
-
-            parsedGrowth.push(growthRow)
-            parsedDiameter.push(diameterRow)
+          for (const { group, index } of heightColumns) {
+            growthRow[group] = parseFloat(row[index]) || 0
           }
+
+          for (const { group, index } of diameterColumns) {
+            diameterRow[group] = parseFloat(row[index]) || 0
+          }
+
+          parsedGrowth.push(growthRow)
+          parsedDiameter.push(diameterRow)
         }
 
-        setGrowthData(parsedGrowth)
-        setDiameterData(parsedDiameter)
+        // Zera a hora das datas para comparar apenas dia/mês/ano
+        const today = new Date()
+        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+
+        const filteredGrowth = parsedGrowth.filter((row) => {
+          const [day, month, year] = row.date.split("/")
+          const dateOnly = new Date(+year, +month - 1, +day)
+          return dateOnly <= todayOnly
+        })
+
+        const filteredDiameter = parsedDiameter.filter((row) => {
+          const [day, month, year] = row.date.split("/")
+          const dateOnly = new Date(+year, +month - 1, +day)
+          return dateOnly <= todayOnly
+        })
+
+        setGrowthData(filteredGrowth)
+        setDiameterData(filteredDiameter)
       } catch (error) {
         console.error("Error loading spreadsheet:", error)
       }
