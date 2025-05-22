@@ -17,6 +17,7 @@ export interface ChartDataPoint {
 
 type ChartType = "growth" | "diameter"
 type Species = "jatoba" | "guapuruvu"
+type Group = "All" | "A" | "B" | "C" | "D"
 
 const CSV_URLS: Record<Species, string> = {
   jatoba:
@@ -28,6 +29,7 @@ const CSV_URLS: Record<Species, string> = {
 export default function GrowthDashboard() {
   const [selectedChart, setSelectedChart] = useState<ChartType>("growth")
   const [selectedSpecies, setSelectedSpecies] = useState<Species>("jatoba")
+  const [selectedGroup, setSelectedGroup] = useState<Group>("All")
   const [growthData, setGrowthData] = useState<ChartDataPoint[]>([])
   const [diameterData, setDiameterData] = useState<ChartDataPoint[]>([])
 
@@ -72,7 +74,6 @@ export default function GrowthDashboard() {
           parsedDiameter.push(diameterRow)
         }
 
-        // Zera a hora das datas para comparar apenas dia/mês/ano
         const today = new Date()
         const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
 
@@ -98,6 +99,21 @@ export default function GrowthDashboard() {
     fetchSheet(CSV_URLS[selectedSpecies])
   }, [selectedSpecies])
 
+function filterKeysByGroup(keys: string[], group: Group) {
+  if (group === "All") {
+    return keys
+  }
+  const regex = new RegExp(`\\d${group}\\b`)
+  const filtered = keys.filter(key => regex.test(key))
+
+  return filtered
+}
+  const data = selectedChart === "growth" ? growthData : diameterData
+
+  const allKeys = data.length > 0 ? Object.keys(data[0]).filter(k => k !== "date") : []
+
+  const filteredKeys = filterKeysByGroup(allKeys, selectedGroup)
+
   return (
     <main className="flex p-4 md:p-6 flex-col gap-6 h-[80vh] 2xl:h-[85vh]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -109,7 +125,7 @@ export default function GrowthDashboard() {
             Species: <strong>{selectedSpecies === "jatoba" ? "Jatoba" : "Guapuruvu"}</strong>
           </p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           <Select value={selectedSpecies} onValueChange={(v) => setSelectedSpecies(v as Species)}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Select species" />
@@ -129,13 +145,26 @@ export default function GrowthDashboard() {
               <SelectItem value="diameter">Diameter</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={selectedGroup} onValueChange={(v) => setSelectedGroup(v as Group)}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Select group" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All groups</SelectItem>
+              <SelectItem value="A">Group A</SelectItem>
+              <SelectItem value="B">Group B</SelectItem>
+              <SelectItem value="C">Group C</SelectItem>
+              <SelectItem value="D">Group D</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {selectedChart === "growth" ? (
-        <GrowthChart data={growthData} species={selectedSpecies} />
+        <GrowthChart data={growthData.filter(row => row.date)} keysFilter={filteredKeys} />
       ) : (
-        <DiameterChart data={diameterData} species={selectedSpecies} />
+        <DiameterChart data={diameterData.filter(row => row.date)} keysFilter={filteredKeys} />
       )}
     </main>
   )

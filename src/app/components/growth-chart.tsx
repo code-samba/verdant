@@ -42,20 +42,37 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
   )
 }
 
-const jatobaColors = ["#10B981", "#059669", "#34D399", "#6EE7B7", "#A7F3D0"]
-const guapuruvuColors = ["#F97316", "#FB923C", "#FDBA74", "#FCD34D", "#FDE68A"]
+const colorPalettes: Record<string, string[]> = {
+  A: ["#10B981", "#059669", "#34D399", "#6EE7B7", "#A7F3D0"],
+  B: ["#F97316", "#FB923C", "#FDBA74", "#FCD34D", "#FDE68A"],
+  C: ["#3B82F6", "#2563EB", "#60A5FA", "#93C5FD", "#BFDBFE"],
+  D: ["#EF4444", "#F87171", "#FCA5A5", "#FECACA", "#FFE4E6"],
+}
 
-function getColorMap(keys: string[], species: string): Record<string, string> {
-  const palette = species === "jatoba" ? jatobaColors : guapuruvuColors
-  const colorMap: Record<string, string> = {}
-  keys.forEach((key, index) => {
-    colorMap[key] = palette[index % palette.length]
+function getColorMap(keys: string[]): Record<string, string> {
+  const groups: Record<string, string[]> = {}
+
+  keys.forEach(key => {
+    const match = key.match(/\d([A-D])\b/)
+    const group = match ? match[1] : "A"
+    if (!groups[group]) groups[group] = []
+    groups[group].push(key)
   })
+
+  const colorMap: Record<string, string> = {}
+
+  Object.entries(groups).forEach(([group, groupKeys]) => {
+    const palette = colorPalettes[group] || colorPalettes["A"]
+    groupKeys.forEach((key, i) => {
+      colorMap[key] = palette[i % palette.length]
+    })
+  })
+
   return colorMap
 }
 
-const renderLines = (keys: string[], species: string) => {
-  const colorMap = getColorMap(keys, species)
+const renderLines = (keys: string[]) => {
+  const colorMap = getColorMap(keys)
 
   return keys.map(key => {
     const color = colorMap[key]
@@ -75,8 +92,8 @@ const renderLines = (keys: string[], species: string) => {
   })
 }
 
-export function GrowthChart({ data, species }: { data: ChartDataPoint[], species: string }) {
-  const groupKeys = data.length > 0 ? Object.keys(data[0]).filter(k => k !== "date") : []
+export function GrowthChart({ data, keysFilter }: { data: ChartDataPoint[], keysFilter?: string[] }) {
+  const groupKeys = keysFilter ?? (data.length > 0 ? Object.keys(data[0]).filter(k => k !== "date") : [])
 
   return (
     <Card className="p-4 md:p-6">
@@ -87,7 +104,7 @@ export function GrowthChart({ data, species }: { data: ChartDataPoint[], species
             <XAxis dataKey="date" tick={{ fill: "hsl(var(--foreground))" }} axisLine={{ stroke: "hsl(var(--border))" }} />
             <YAxis tick={{ fill: "hsl(var(--foreground))" }} axisLine={{ stroke: "hsl(var(--border))" }} tickFormatter={v => `${v}`} />
             <Tooltip content={<CustomTooltip />} cursor={{ stroke: "transparent" }} />
-            {renderLines(groupKeys, species)}
+            {renderLines(groupKeys)}
           </LineChart>
         </ResponsiveContainer>
       </div>
