@@ -4,7 +4,7 @@
 
 Samba Verdant é um projeto de visualização de dados desenvolvido como parte de uma iniciativa científica. Ele coleta dados diretamente de uma tabela do Google Sheets e os exibe em tempo real por meio de gráficos interativos.
 
-Este projeto está relacionado à iniciativa [Ecology](https://sambacode.com.br/ecology) e foi criado com o objetivo de apoiar pesquisas de iniciação científica na área de ecologia e meio ambiente.
+Este projeto está relacionado à iniciativa [Ecology](https://github.com/code-samba/ecology) e foi criado com o objetivo de apoiar pesquisas de iniciação científica na área de ecologia e meio ambiente.
 
 ---
 
