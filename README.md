@@ -49,7 +49,4 @@ Este projeto é licenciado sob a [MIT License](LICENSE).
 
 ---
 
-## ✨ Desenvolvido por
-
-**[Frooszy](https://github.com/Frooszy)**  
-Um projeto do coletivo [SambaCode](https://sambacode.com.br).
+🚀 Desenvolvido por **[Frooszy](https://github.com/Frooszy)**  
