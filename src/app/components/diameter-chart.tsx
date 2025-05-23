@@ -42,7 +42,6 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
   )
 }
 
-// Paletas de cores distintas para cada grupo
 const colorsByGroup: Record<string, string[]> = {
   A: ["#10B981", "#059669", "#34D399", "#6EE7B7", "#A7F3D0"],
   B: ["#F97316", "#FB923C", "#FDBA74", "#FCD34D", "#FDE68A"],
@@ -51,13 +50,11 @@ const colorsByGroup: Record<string, string[]> = {
 }
 
 function getGroupFromKey(key: string) {
-  // Extrai a letra A, B, C ou D que está depois do número e antes do espaço
   const match = key.match(/\d([A-D])\b/)
   return match ? match[1] : "A"
 }
 
 function getColorMap(keys: string[]): Record<string, string> {
-  // Agrupa as keys por grupo e cria um map de cores baseado no grupo e índice
   const groups: Record<string, string[]> = {}
 
   keys.forEach(key => {
