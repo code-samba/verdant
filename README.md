@@ -45,7 +45,7 @@ npm run dev
 
 ## 📄 Licença
 
-Este projeto é licenciado sob a [MIT License](LICENSE).
+Este projeto é licenciado sob a [GNU GPL](LICENSE).
 
 ---
 
